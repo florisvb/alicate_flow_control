@@ -6,15 +6,34 @@ import rospy
 import rosparam
 import numpy as np
 from std_msgs.msg import Float32, Header, String
+import time
+
+def get_float_local_time_hours():
+    t = time.localtime(time.time())
+    lt = t.tm_hour + t.tm_min/60. + t.tm_sec/3600.
+    return lt
 
 class AlicatFlowController:
-    def __init__(self, pulse_interval=2400, pulse_length=600, publish_name='/alicat_flow_control'):
+    def __init__(self,  pulse_interval=2400, 
+                        pulse_length=600, 
+                        first_pulse_time=-1,
+                        first_pulse_delay=0,
+                        publish_name='/alicat_flow_control'):
         self.pulse_interval = pulse_interval
         self.pulse_length = pulse_length
         self.publisher = rospy.Publisher(publish_name, Float32, queue_size=10)
         
     def main(self, flow_rate=5):
-        rospy.sleep(self.pulse_interval)
+    
+        # first pause until local time reached
+        if self.first_pulse_time > 0:
+            rate = rospy.Rate(0.25)
+            while not rospy.is_shutdown():
+                lt = get_float_local_time_hours():
+                if np.abs(lt-self.first_pulse_time) < 1:
+                    break
+    
+        rospy.sleep(self.first_pulse_delay)
         rate = rospy.Rate(1 / float(self.pulse_interval) ) 
         while not rospy.is_shutdown():
         
@@ -33,6 +52,10 @@ class AlicatFlowController:
             
 if __name__ == '__main__':
     parser = OptionParser()
+    parser.add_option("--first_pulse_time", type="int", dest="first_pulse_time", default=-1,
+                        help="time (localtime in hours) to send first pulse, defaults to -1 which means now")
+    parser.add_option("--first_pulse_delay", type="int", dest="first_pulse_delay", default=0,
+                        help="number of seconds to wait before sending first pulse")
     parser.add_option("--pulse_interval", type="int", dest="pulse_interval", default=2400,
                         help="pulse interval")
     parser.add_option("--pulse_length", type="int", dest="pulse_length", default=600,
