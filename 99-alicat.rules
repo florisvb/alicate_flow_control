@@ -1,0 +1,1 @@
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", ATTRS{serial}=="AI02C77S", GROUP="plugdev", SYMLINK+="alicat_test", MODE:="0666"
