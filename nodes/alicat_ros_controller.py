@@ -29,7 +29,7 @@ class AlicatFlowController:
         if self.first_pulse_time > 0:
             rate = rospy.Rate(0.25)
             while not rospy.is_shutdown():
-                lt = get_float_local_time_hours():
+                lt = get_float_local_time_hours()
                 if np.abs(lt-self.first_pulse_time) < 1:
                     break
     
