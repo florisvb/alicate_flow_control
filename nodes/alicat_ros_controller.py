@@ -19,24 +19,33 @@ class AlicatFlowController:
                         first_pulse_time=-1,
                         first_pulse_delay=0,
                         publish_name='/alicat_flow_control'):
+        print 'start'
         self.pulse_interval = pulse_interval
         self.pulse_length = pulse_length
         self.publisher = rospy.Publisher(publish_name, Float32, queue_size=10)
+        self.first_pulse_time = first_pulse_time
+        self.first_pulse_delay = first_pulse_delay
+        time.sleep(2)
+        print 'go'
         
     def main(self, flow_rate=5):
     
         # first pause until local time reached
         if self.first_pulse_time > 0:
+            print 'waiting until: ', self.first_pulse_time
             rate = rospy.Rate(0.25)
             while not rospy.is_shutdown():
                 lt = get_float_local_time_hours()
                 if np.abs(lt-self.first_pulse_time) < 1:
                     break
-    
+                    
+        print 'running'
         rospy.sleep(self.first_pulse_delay)
         rate = rospy.Rate(1 / float(self.pulse_interval) ) 
+        print 'running'
         while not rospy.is_shutdown():
-        
+            
+            print 'hi'
             if type(flow_rate) is list:
                 index = np.random.randint(len(flow_rate))
                 f = flow_rate[index]
@@ -68,7 +77,11 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
     
     rospy.init_node('alicat_ros_flow_controller')
-    alicat_flow_controller = AlicatFlowController(options.pulse_interval, options.pulse_length, options.publish_name)
+    alicat_flow_controller = AlicatFlowController(  pulse_interval=options.pulse_interval, 
+                                                    pulse_length=options.pulse_length, 
+                                                    first_pulse_time=options.first_pulse_time,
+                                                    first_pulse_delay=options.first_pulse_delay,
+                                                    publish_name=options.publish_name)
     alicat_flow_controller.main(flow_rate=options.flow_rate)
             
             
