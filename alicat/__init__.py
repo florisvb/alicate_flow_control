@@ -59,6 +59,8 @@ class FlowMeter(object):
         command = "*@={addr}\r\n".format(addr=self.address)
         line = self._write_and_read(command, retries)
         spl = line.split()
+        print
+        print line
         address, values = spl[0], spl[1:]
         if address != self.address:
             print address, self.address
@@ -149,6 +151,8 @@ class FlowController(FlowMeter):
         """
         command = "{addr}S{flow:.2f}\r\n".format(addr=self.address, flow=flow)
         line = self._write_and_read(command, retries)
+        sleep(0.05)
+        self.flush()
         print self.get()
         #if abs(float(line) - flow) > 0.01:
         #    raise IOError("Could not set flow.")
