@@ -59,8 +59,6 @@ class FlowMeter(object):
         command = "*@={addr}\r\n".format(addr=self.address)
         line = self._write_and_read(command, retries)
         spl = line.split()
-        print
-        print line
         address, values = spl[0], spl[1:]
         if address != self.address:
             print address, self.address
