@@ -6,6 +6,7 @@ import rospy
 import rosparam
 import numpy as np
 from std_msgs.msg import Float32, Header, String
+import time
 
 import alicat
 
@@ -19,13 +20,21 @@ class AlicatFlowController:
         self.publisher = rospy.Publisher(publish_name, Float32, queue_size=10)
         self.subscriber = rospy.Subscriber(subscribe_name, Float32, self.flow_control_callback, queue_size=10)
 
+        self.data = None
+
     def flow_control_callback(self, data):
+        self.data = data
         self.flow_controller.set_flow_rate(data.data, retries=2)
         
     def publish_flow_rate(self):
         try:
             flow_rate = self.flow_controller.get()['mass_flow']
             self.publisher.publish(flow_rate)
+            if self.data is not None:
+                if np.abs(flow_rate-self.data.data) > 1:
+                    self.flow_controller.set_flow_rate(0, retries=2)
+                    time.sleep(0.25)
+                    self.flow_control_callback(self.data)
         except:
             print 'Could not get / publish flow rate'
         
