@@ -16,22 +16,32 @@ class AlicatFlowController:
         self.address = address
         self.flow_controller = alicat.FlowController(port, address)
         self.publish_rate = publish_rate
-        
+        self.publish_name = publish_name
         self.publisher = rospy.Publisher(publish_name, Float32, queue_size=10)
         self.subscriber = rospy.Subscriber(subscribe_name, Float32, self.flow_control_callback, queue_size=10)
 
         self.data = None
+        self.desired_flow_rate = None
 
     def flow_control_callback(self, data):
         self.data = data
-        self.flow_controller.set_flow_rate(data.data, retries=2)
-        
+        if '_2' in self.publish_name:
+            if data.data != 0:
+                self.desired_flow_rate = 5
+            else:
+                self.desired_flow_rate = 0
+            self.flow_controller.set_flow_rate(self.desired_flow_rate, retries=2)
+            
+        else:
+            self.flow_controller.set_flow_rate(data.data, retries=2)
+            self.desired_flow_rate = data.data
+            
     def publish_flow_rate(self):
         try:
             flow_rate = self.flow_controller.get()['mass_flow']
             self.publisher.publish(flow_rate)
-            if self.data is not None:
-                if np.abs(flow_rate-self.data.data) > 1:
+            if self.desired_flow_rate is not None:
+                if np.abs(flow_rate-self.desired_flow_rate) > 1:
                     self.flow_controller.set_flow_rate(0, retries=2)
                     time.sleep(0.25)
                     self.flow_control_callback(self.data)
@@ -43,6 +53,7 @@ class AlicatFlowController:
         while not rospy.is_shutdown():
             self.publish_flow_rate()
             rate.sleep()
+        self.flow_controller.close()
             
 if __name__ == '__main__':
     parser = OptionParser()
