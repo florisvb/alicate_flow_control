@@ -32,7 +32,7 @@ class FlowMeter(object):
         self.keys = ["pressure", "temperature", "volumetric_flow", "mass_flow",
                      "flow_setpoint", "gas"]
         self.keys_2 = ["pressure", "temperature", "volumetric_flow", "mass_flow",
-                     "flow_setpoint", "totalized_flow", "gas"]
+                     "flow_setpoint", "gas"]
         self.gases = ["Air", "Ar", "CH4", "CO", "CO2", "C2H6", "H2", "He",
                       "N2", "N2O", "Ne", "O2", "C3H8", "n-C4H10", "C2H2",
                       "C2H4", "i-C2H10", "Kr", "Xe", "SF6", "C-25", "C-10",
@@ -60,7 +60,10 @@ class FlowMeter(object):
         Returns:
             The state of the flow controller, as a dictionary.
         """
-        command = "*@={addr}\r\n".format(addr=self.address)
+        if self.driver_version == 1:   
+            command = "*@={addr}\r\n".format(addr=self.address)
+        elif self.driver_version == 2:   
+            command = "*@={addr}\r".format(addr=self.address)  # this command might work for version 1 as well?
         line = self._write_and_read(command, retries)
         spl = line.split()
         address, values = spl[0], spl[1:]
@@ -76,6 +79,8 @@ class FlowMeter(object):
             return {k: (v if k == self.keys[-1] else float(v))
                     for k, v in zip(self.keys, values)}
         elif self.driver_version == 2:
+            if len(values) == 7:
+                del values[-2]
             return {k: (v if k == self.keys_2[-1] else float(v))
                     for k, v in zip(self.keys_2, values)}
     def set_gas(self, gas, retries=2):
@@ -90,8 +95,12 @@ class FlowMeter(object):
         """
         if gas not in self.gases:
             raise ValueError("{} not supported!".format(gas))
-        command = "{addr}$${gas}\r\n".format(addr=self.address,
-                                             gas=self.gases.index(gas))
+        if self.driver_version == 1:
+            command = "{addr}$${gas}\r\n".format(addr=self.address,
+                                                 gas=self.gases.index(gas))
+        elif self.driver_version == 2:
+            command = "{addr}$${gas}\r".format(addr=self.address,
+                                                 gas=self.gases.index(gas))
         line = self._write_and_read(command, retries)
         if line.split()[-1] != gas:
             raise IOError("Could not set gas type")
@@ -111,9 +120,11 @@ class FlowMeter(object):
         """Writes a command and reads a response from the flow controller."""
         self.flush()
         for _ in range(retries+1):
+            print 'trying'
             self.connection.write(command)
             sleep(0.05)
             line = self._readline()
+            print line
             if line:
                 self.flush()
                 return self._separator_regex.sub(r"\1 \2", line)
@@ -158,7 +169,10 @@ class FlowController(FlowMeter):
         print 'before: ', self.get()
         self.flush()
         sleep(0.05)
-        command = "{addr}S{flow:.2f}\r\n".format(addr=self.address, flow=flow)
+        if self.driver_version == 1:
+            command = "{addr}S{flow:.2f}\r\n".format(addr=self.address, flow=flow)
+        if self.driver_version == 2:
+            command = "{addr}S{flow:.2f}\r".format(addr=self.address, flow=flow)
         line = self._write_and_read(command, retries)
         sleep(0.05)
         self.flush()
