@@ -17,18 +17,22 @@ class FlowMeter(object):
     This communicates with the flow meter over a USB or RS-232/RS-485
     connection using pyserial.
     """
-    def __init__(self, port="/dev/ttyUSB0", address="A"):
+    def __init__(self, port="/dev/ttyUSB0", address="A", driver_version=1):
         """Connects this driver with the appropriate USB / serial port.
 
         Args:
             port: The serial port. Default "/dev/ttyUSB0".
             address: The Alicat-specified address, A-Z. Default "A".
+            driver_version: 1: old firmware; 2: new firmware
         """
         self.address = address
         self.eol = b"\r"
+        self.driver_version = driver_version
         self.connection = serial.Serial(port, 19200, timeout=0.25)
         self.keys = ["pressure", "temperature", "volumetric_flow", "mass_flow",
                      "flow_setpoint", "gas"]
+        self.keys_2 = ["pressure", "temperature", "volumetric_flow", "mass_flow",
+                     "flow_setpoint", "totalized_flow", "gas"]
         self.gases = ["Air", "Ar", "CH4", "CO", "CO2", "C2H6", "H2", "He",
                       "N2", "N2O", "Ne", "O2", "C3H8", "n-C4H10", "C2H2",
                       "C2H4", "i-C2H10", "Kr", "Xe", "SF6", "C-25", "C-10",
@@ -64,13 +68,16 @@ class FlowMeter(object):
             print address, self.address
             print "Flow controller address mismatch." 
             #raise ValueError("Flow controller address mismatch.")
-        if len(values) == 5 and len(self.keys) == 6:
-            del self.keys[-2]
-        elif len(values) == 7 and len(self.keys) == 6:
-            self.keys.insert(5, "total flow")
-        return {k: (v if k == self.keys[-1] else float(v))
-                for k, v in zip(self.keys, values)}
-
+        if self.driver_version == 1:        
+            if len(values) == 5 and len(self.keys) == 6:
+                del self.keys[-2]
+            elif len(values) == 7 and len(self.keys) == 6:
+                self.keys.insert(5, "total flow")
+            return {k: (v if k == self.keys[-1] else float(v))
+                    for k, v in zip(self.keys, values)}
+        elif self.driver_version == 2:
+            return {k: (v if k == self.keys_2[-1] else float(v))
+                    for k, v in zip(self.keys_2, values)}
     def set_gas(self, gas, retries=2):
         """Sets the gas type.
 
