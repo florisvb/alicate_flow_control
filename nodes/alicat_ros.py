@@ -11,10 +11,10 @@ import time
 import alicat
 
 class AlicatFlowController:
-    def __init__(self, port="/dev/ttyUSB0", address="A", publish_rate=1, publish_name='/alicat_flow_rate', subscribe_name='/alicat_flow_control'):
+    def __init__(self, port="/dev/ttyUSB0", address="A", publish_rate=1, publish_name='/alicat_flow_rate', subscribe_name='/alicat_flow_control', driver_version=1):
         self.port = port
         self.address = address
-        self.flow_controller = alicat.FlowController(port, address)
+        self.flow_controller = alicat.FlowController(port, address, driver_version)
         self.publish_rate = publish_rate
         self.publish_name = publish_name
         self.publisher = rospy.Publisher(publish_name, Float32, queue_size=10)
@@ -67,11 +67,13 @@ if __name__ == '__main__':
                         help="topic name to subscribe to")
     parser.add_option("--publish_rate", type="float", dest="publish_rate", default=0.1,
                         help="rate at which to publish flow rate")
+    parser.add_option("--driver_version", type="int", dest="driver_version", default=1,
+                        help="which driver to use, 1 or 2")
     
     (options, args) = parser.parse_args()
     
     rospy.init_node('alicat_ros')
-    alicat_flow_controller = AlicatFlowController(options.port, options.address, options.publish_rate, options.publish_name, options.subscribe_name)
+    alicat_flow_controller = AlicatFlowController(options.port, options.address, options.publish_rate, options.publish_name, options.subscribe_name, options.driver_version)
     alicat_flow_controller.main()
             
             
