@@ -8,7 +8,7 @@ Copyright (C) 2015 NuMat Technologies
 import re
 from time import sleep
 import serial
-
+import threading
 
 class FlowMeter(object):
     """Python driver for [Alicat Flow Meters](http://www.alicat.com/
@@ -60,17 +60,18 @@ class FlowMeter(object):
         Returns:
             The state of the flow controller, as a dictionary.
         """
+        print 'GETTING'
         if self.driver_version == 1:   
-            command = "*@={addr}\r\n".format(addr=self.address)
+            command = "{addr}\r\n".format(addr=self.address) # note: '*@={addr}' sets devices to that address!
         elif self.driver_version == 2:   
-            command = "*@={addr}\r".format(addr=self.address)  # this command might work for version 1 as well?
+            command = "{addr}\r".format(addr=self.address)  # this command might work for version 1 as well?
         line = self._write_and_read(command, retries)
         spl = line.split()
         address, values = spl[0], spl[1:]
         if address != self.address:
-            print address, self.address
-            print "Flow controller address mismatch." 
-            #raise ValueError("Flow controller address mismatch.")
+            #print address, self.address
+            #print "Flow controller address mismatch." 
+            raise ValueError("Flow controller address mismatch.")
         if self.driver_version == 1:        
             if len(values) == 5 and len(self.keys) == 6:
                 del self.keys[-2]
@@ -119,12 +120,12 @@ class FlowMeter(object):
     def _write_and_read(self, command, retries=2):
         """Writes a command and reads a response from the flow controller."""
         self.flush()
+        p = "****** Command: {command} :*******".format(command=command)
+        print p
         for _ in range(retries+1):
-            print 'trying'
             self.connection.write(command)
             sleep(0.05)
             line = self._readline()
-            print line
             if line:
                 self.flush()
                 return self._separator_regex.sub(r"\1 \2", line)
@@ -165,22 +166,11 @@ class FlowController(FlowMeter):
         Args:
             flow: The target flow rate, in units specified at time of purchase
         """
-        sleep(0.05)
-        print 'before: ', self.get()
-        self.flush()
-        sleep(0.05)
         if self.driver_version == 1:
             command = "{addr}S{flow:.2f}\r\n".format(addr=self.address, flow=flow)
         if self.driver_version == 2:
             command = "{addr}S{flow:.2f}\r".format(addr=self.address, flow=flow)
         line = self._write_and_read(command, retries)
-        sleep(0.05)
-        self.flush()
-        sleep(0.05)
-        print 'after: ', self.get()
-        #if abs(float(line) - flow) > 0.01:
-        #    raise IOError("Could not set flow.")
-
 
 def command_line():
     import argparse
