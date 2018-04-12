@@ -130,7 +130,7 @@ class FlowMeter(object):
                 self.flush()
                 return self._separator_regex.sub(r"\1 \2", line)
         else:
-            raise IOError("Could not read from flow controller.")
+            raise IOError("Could not read from flow controller. Try using driver_version=2 and power cycle your Alicat.")
 
     def _readline(self):
         """Reads a line using a custom newline character.
