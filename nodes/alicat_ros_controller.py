@@ -26,7 +26,9 @@ class AlicatFlowController:
         self.first_pulse_time = first_pulse_time
         self.first_pulse_delay = first_pulse_delay
         time.sleep(2)
+        self.publisher.publish(0)
         print 'go'
+        print 'first pulse time: ', self.first_pulse_time
         
     def main(self, flow_rate=5):
     
@@ -36,7 +38,8 @@ class AlicatFlowController:
             rate = rospy.Rate(0.25)
             while not rospy.is_shutdown():
                 lt = get_float_local_time_hours()
-                if np.abs(lt-self.first_pulse_time) < 1:
+                if lt > self.first_pulse_time:
+                    print('time reached: ', self.first_pulse_time, 'current lt: ', lt)
                     break
                     
         print 'running'
