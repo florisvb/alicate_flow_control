@@ -61,14 +61,14 @@ class AlicatFlowController:
             
 if __name__ == '__main__':
     parser = OptionParser()
-    parser.add_option("--first_pulse_time", type="int", dest="first_pulse_time", default=-1,
-                        help="time (localtime in hours) to send first pulse, defaults to -1 which means now")
+    parser.add_option("--first_pulse_time", type="float", dest="first_pulse_time", default=-1,
+                        help="time (localtime in hours with decimals to indicate seconds and minutes) to send first pulse, defaults to -1 which means now")
     parser.add_option("--first_pulse_delay", type="int", dest="first_pulse_delay", default=0,
                         help="number of seconds to wait before sending first pulse")
-    parser.add_option("--pulse_interval", type="int", dest="pulse_interval", default=2400,
-                        help="pulse interval")
+    parser.add_option("--pulse_interval", type="int", dest="pulse_interval", default=0,
+                        help="pulse interval in seconds")
     parser.add_option("--pulse_length", type="int", dest="pulse_length", default=600,
-                        help="pulse length")
+                        help="pulse length in seconds")
     parser.add_option("--publish_name", type="str", dest="publish_name", default='/alicat_flow_control',
                         help="topic to publish to")
     parser.add_option("--flow_rate", type="float", dest="flow_rate", default=5,
