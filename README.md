@@ -1,39 +1,10 @@
-# Single Flow Controller, (not using ROS)
+# ROS node for Alicat Flow Meter control
 
-Download the repository:
-```
-git clone https://github.com/florisvb/alicate_flow_control.git
-```
+### Basic flow control
 
-From inside the alicat package run:
-```
-python ./setup.py install
-```
-
-If you are using a serial to USB adapter, you need to add your user to the group dialout:
-```
-sudo adduser $USER dialout
-```
-
-Then you must log out / in. 
-
-In the mean time, set up your Alicat flow controller to respond to the serial commands. On the front panel navigate these menus:
-```
-menu > control > setpt source > serial/front panel
-```
-
-Here are some basic commands to get started:
-```
-import alicat
-a = alicat.FlowController(driver_version=2) # driver_version 2 needed for most newer alicats
-print( a.get()['flow_setpoint'] )
-print( a.get()['mass_flow'] )
-a.set_flow_rate(10)
-```
-
-# Multiple Flow Controllers
-
-Recommended to use the BB9 controller. But you can address individual alicat's through their ports:
-```
-a = alicat.FlowController(port='/dev/ttyUSB0', driver_version=2)
-```
+1. Install alicat module: from this home directory run `python ./setup.py install`
+2. Possibly update rules, note port number (check `/dev` after unplugging and plugging in device), note device address (on device: `menu>about>adv setup>comm setup` and note unit id)
+3. Run the ROS node (assuming your port is /dev/tty/USB0 and device address is A and you're on driver version 2 (e.g. controllers made after 2016ish): 
+   `rosrun alicat_flow_control alicat_ros.py --port=/dev/ttyUSB0 --address=A --driver_version=2`
+4. Change the flowrate by publishing on `/alicat_flow_control`, e.g.: `rostopic pub /alicat_flow_control std_msgs/Float32 "data: 30.0"`
+5. Record the flowrate from topic `/alicat_flow_rate`. You can change the rate with an option when running alicat_flow_control alicat_ros.py
