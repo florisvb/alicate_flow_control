@@ -46,7 +46,7 @@ class AlicatFlowController:
                     time.sleep(0.25)
                     self.flow_control_callback(self.data)
         except:
-            print 'Could not get / publish flow rate'
+            print('Could not get / publish flow rate')
         
     def main(self):
         rate = rospy.Rate(self.publish_rate) # 10hz
