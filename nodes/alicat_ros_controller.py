@@ -19,7 +19,7 @@ class AlicatFlowController:
                         first_pulse_time=-1,
                         first_pulse_delay=0,
                         publish_name='/alicat_flow_control'):
-        print 'start'
+        print('start')
         self.pulse_interval = pulse_interval
         self.pulse_length = pulse_length
         self.publisher = rospy.Publisher(publish_name, Float32, queue_size=10)
@@ -27,14 +27,14 @@ class AlicatFlowController:
         self.first_pulse_delay = first_pulse_delay
         time.sleep(2)
         self.publisher.publish(0)
-        print 'go'
-        print 'first pulse time: ', self.first_pulse_time
+        print('go')
+        print('first pulse time: ', self.first_pulse_time)
         
     def main(self, flow_rate=5):
     
         # first pause until local time reached
         if self.first_pulse_time > 0:
-            print 'waiting until: ', self.first_pulse_time
+            print('waiting until: ', self.first_pulse_time)
             rate = rospy.Rate(0.25)
             while not rospy.is_shutdown():
                 lt = get_float_local_time_hours()
@@ -42,13 +42,12 @@ class AlicatFlowController:
                     print('time reached: ', self.first_pulse_time, 'current lt: ', lt)
                     break
                     
-        print 'running'
+        print('running')
         rospy.sleep(self.first_pulse_delay)
         rate = rospy.Rate(1 / float(self.pulse_interval) ) 
-        print 'running'
+        print('running')
         while not rospy.is_shutdown():
             
-            print 'hi'
             if type(flow_rate) is list:
                 index = np.random.randint(len(flow_rate))
                 f = flow_rate[index]
@@ -56,10 +55,10 @@ class AlicatFlowController:
                 f = flow_rate
 
             self.publisher.publish(f)
-            print 'flow rate: ', flow_rate
+            print('flow rate: ', flow_rate)
             rospy.sleep(self.pulse_length)
             self.publisher.publish(0)
-            print 'flow rate: ', 0
+            print('flow rate: ', 0)
             rate.sleep()
             
 if __name__ == '__main__':
