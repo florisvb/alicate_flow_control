@@ -65,7 +65,7 @@ class FlowMeter(object):
             command = "{addr}\r\n".format(addr=self.address) # note: '*@={addr}' sets devices to that address!
         elif self.driver_version == 2:   
             command = "{addr}\r".format(addr=self.address)  # this command might work for version 1 as well?
-        line = self._write_and_read(command, retries)
+        line = self._write_and_read(str.encode(command), retries)
         spl = line.split()
         address, values = spl[0], spl[1:]
         if address != self.address:
@@ -102,7 +102,7 @@ class FlowMeter(object):
         elif self.driver_version == 2:
             command = "{addr}$${gas}\r".format(addr=self.address,
                                                  gas=self.gases.index(gas))
-        line = self._write_and_read(command, retries)
+        line = self._write_and_read(str.encode(command), retries)
         if line.split()[-1] != gas:
             raise IOError("Could not set gas type")
 
@@ -170,7 +170,7 @@ class FlowController(FlowMeter):
             command = "{addr}S{flow:.2f}\r\n".format(addr=self.address, flow=flow)
         if self.driver_version == 2:
             command = "{addr}S{flow:.2f}\r".format(addr=self.address, flow=flow)
-        line = self._write_and_read(command, retries)
+        line = self._write_and_read(str.encode(command), retries)
 
 def command_line():
     import argparse
