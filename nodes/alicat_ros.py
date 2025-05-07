@@ -65,7 +65,7 @@ if __name__ == '__main__':
                         help="topic name to publish under")
     parser.add_option("--subscribe_name", type="str", dest="subscribe_name", default='/alicat_flow_control',
                         help="topic name to subscribe to")
-    parser.add_option("--publish_rate", type="float", dest="publish_rate", default=0.1,
+    parser.add_option("--publish_rate", type="float", dest="publish_rate", default=0.2,
                         help="rate at which to publish flow rate")
     parser.add_option("--driver_version", type="int", dest="driver_version", default=1,
                         help="which driver to use, 1 or 2")

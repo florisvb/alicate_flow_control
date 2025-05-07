@@ -60,7 +60,7 @@ class FlowMeter(object):
         Returns:
             The state of the flow controller, as a dictionary.
         """
-        print('GETTING')
+        #print('GETTING')
         if self.driver_version == 1:   
             command = "{addr}\r\n".format(addr=self.address) # note: '*@={addr}' sets devices to that address!
         elif self.driver_version == 2:   
@@ -121,7 +121,7 @@ class FlowMeter(object):
         """Writes a command and reads a response from the flow controller."""
         self.flush()
         p = "****** Command: {command} :*******".format(command=command)
-        print(p)
+        #print(p)
         for _ in range(retries+1):
             self.connection.write(command)
             sleep(0.05)
